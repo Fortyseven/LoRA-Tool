@@ -66,10 +66,11 @@ Here's a real life example of what gets generated once LoRA processing begins:
 
 Using captions is entirely optional, but strongly recommended to increase the flexibility of generated imagery. (If it knows what Worf looks like smiling, for instance, it has an example to draw from instead of just extrapolating from known concepts. At least, that's how I understand it.)
 
-Once the images are prepped, just run `lora-tool.py -k my_keyword` in the directory with the images, and it will create all the infrastructure for you in the `/lora` directory, with generated models in `/lora/model/*.safetensors`.
+Once the images are prepped, just run `lora-tool.py -k my_keyword -r 3` in the directory with the images (or whatever quantity of "repeats" you want; defaults to 100 if you don't provide one, but that might be overkill for SDXL?), and it will create all the infrastructure for you in the `/lora` directory, with generated models in `/lora/model/*.safetensors`.
 
 # Notes
 - This script currently has SDXL hard coded in a bool as `True`, since SDXL generation has been my focus since making this. Now that I understand the generation parameters a bit better, I may revisit SD15 LoRAs again later.
+- The actual values for repeats and epochs and all that are just what I've found success with; your particular training scenario or preferences will likely vary.
 - **This script really isn't intended for the mainstream, so some obvious improvements (like adding a switch for the aforementioned SDXL mode) are missing.**
   - Those interested in it, or whatever reason, would be better served by just forking this and customizing it for their own uses, since I have no interest in actively maintaining this. Especially since it's basically just a glorified shell script around someone else's project.
 
