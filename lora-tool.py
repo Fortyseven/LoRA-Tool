@@ -186,7 +186,7 @@ def _build_launch_str():
 def run_lora_process(source_path: str) -> None:
     global args
 
-    if not args.keyword: # type: ignore
+    if not args.keyword:  # type: ignore
         console.log("[red]Keyword is required[/red]")
         exit(1)
 
