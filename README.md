@@ -72,3 +72,8 @@ Once the images are prepped, just run `lora-tool.py -k my_keyword` in the direct
 - This script currently has SDXL hard coded in a bool as `True`, since SDXL generation has been my focus since making this. Now that I understand the generation parameters a bit better, I may revisit SD15 LoRAs again later.
 - **This script really isn't intended for the mainstream, so some obvious improvements (like adding a switch for the aforementioned SDXL mode) are missing.**
   - Those interested in it, or whatever reason, would be better served by just forking this and customizing it for their own uses, since I have no interest in actively maintaining this. Especially since it's basically just a glorified shell script around someone else's project.
+
+
+# Known Bugs
+- Isn't case insensitive with image globbing. That is, `*.JPG != *.jpg`. These are simply ignored. Boo. I should fix that.
+- Doesn't check if there's already models in `/lora/model` before beginning, but it does recreate `/lora/images` every time, however.
