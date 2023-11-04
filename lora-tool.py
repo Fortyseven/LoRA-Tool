@@ -5,6 +5,8 @@ import os
 import shutil
 from rich.console import Console
 
+PATH_MY_KOHYA = "/home/fortyseven/opt/ai/kohya_ss"
+
 console = Console()
 
 args = None
@@ -96,9 +98,6 @@ def generate_caption_files(source_path: str) -> None:
             f.write(caption_text)
 
     console.log(f"[green]Caption files regenerated.[/green]")
-
-
-PATH_MY_KOHYA = "/home/fortyseven/opt/ai/kohya_ss"
 
 
 def _build_launch_str():
