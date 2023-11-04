@@ -335,3 +335,7 @@ if __name__ == "__main__":
     finally:
         # show args that were used
         console.log(f"[yellow]Args used:[/yellow] {args}")
+        # also write them to a text file in the project directory, along with configs value
+        with open(os.path.join(args.path, "lora-args.txt"), "w") as f:
+            f.write(f"Args used: {args}\n\n")
+            f.write(f"Configs used: {configs['sd15' if args.sd15 else 'sdxl']}")
