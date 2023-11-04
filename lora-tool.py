@@ -11,6 +11,58 @@ console = Console()
 
 args = None
 
+configs = {
+    "sd15": {
+        "base_model": "runwayml/stable-diffusion-v1-5",
+        "bucket_reso_steps": 64,
+        "caption_extension": ".txt",
+        "learning_rate": "0.0001",
+        "lr_scheduler_num_cycles": "3",
+        "lr_scheduler": "cosine",
+        "lr_warmup_steps": 220,
+        "max_data_loader_n_workers": 0,
+        # "max_train_steps" : "22000",
+        "mixed_precision": "bf16",
+        # "network_dim" : 256,
+        "network_dim": 16,
+        "networks_module": "lycoris.kohya",
+        "noise_offset": 0.0,
+        "optimizer_args": "",
+        "optimizer_type": "AdamW8bit",
+        "res": "512,512",
+        "save_every_n_epochs": "10",
+        "save_precision": "bf16",
+        "script": "./train_network.py",
+        "text_encoder_lr": "5e-05",
+        "train_batch_size": "4",
+        "unet_lr": 0.0001,
+    },
+    "sdxl": {
+        "base_model": "stabilityai/stable-diffusion-xl-base-1.0",
+        "bucket_reso_steps": 64,
+        "caption_extension": ".txt",
+        "learning_rate": "0.0004",
+        "lr_scheduler_num_cycles": "10",
+        "lr_scheduler": "constant",
+        "lr_warmup_steps": 0,
+        "max_data_loader_n_workers": 0,
+        # "max_train_steps" : "22000",
+        "mixed_precision": "bf16",
+        "network_dim": 64,  # ends up being just over ~450 megs, 256 is almost 2 gigs with not enough benefit
+        "networks_module": "networks.lora",
+        "noise_offset": 0.0,
+        "optimizer_args": "--optimizer_args scale_parameter=False relative_step=False warmup_init=False",
+        "optimizer_type": "Adafactor",
+        "res": "1024,1024",
+        "save_every_n_epochs": "10",
+        "save_precision": "bf16",
+        "script": "./sdxl_train_network.py",
+        "text_encoder_lr": "0.0004",
+        "train_batch_size": "1",
+        "unet_lr": 0.0004,
+    },
+}
+
 
 def is_project_path_valid(path: str) -> bool:
     """
@@ -104,79 +156,51 @@ def _build_launch_str():
     if not args:
         raise ValueError("args is not set")
 
-    sdxl = True
+    sd15 = args.sd15
 
-    base_model = (
-        "stabilityai/stable-diffusion-xl-base-1.0"
-        if sdxl
-        else "runwayml/stable-diffusion-v1-5"
-    )
-    bucket_reso_steps = 64
-    caption_extension = ".txt"
-    learning_rate = "0.0004" if sdxl else "0.0001"
-    lr_scheduler = "constant" if sdxl else "cosine"
-    lr_scheduler_num_cycles = "10" if sdxl else "3"
-    lr_warmup_steps = 0 if sdxl else 220
-    max_data_loader_n_workers = 0
-    # max_train_steps = "22000" if sdxl else "4485"
-    mixed_precision = "bf16"
-    # network_dim = 256 if sdxl else 8 # note, "256" results in almost a 2 gig lora
-    network_dim = 64 if sdxl else 16  # formerly 8 non-sdxl
-    networks_module = "networks.lora" if sdxl else "lycoris.kohya"
-    noise_offset = 0.0
-    optimizer_type = "Adafactor" if sdxl else "AdamW8bit"
-    optimizer_args = (
-        "--optimizer_args scale_parameter=False relative_step=False warmup_init=False"
-    )
-    res = "1024,1024" if sdxl else "512,512"
-    save_every_n_epochs = "10" if sdxl else "10"
-    save_precision = mixed_precision
-    script = "./sdxl_train_network.py" if sdxl else "./train_network.py"
-    text_encoder_lr = "0.0004" if sdxl else "5e-05"
-    train_batch_size = "1" if sdxl else "4"
-    unet_lr = 0.0004 if sdxl else 0.0001
+    config = configs["sd15"] if sd15 else configs["sdxl"]
 
-    import re
+    console.log(f"[green]Using {'sd15' if sd15 else 'sdxl'  } config: {config}[/green]")
 
     return f"""
     accelerate launch
         --num_cpu_threads_per_process=12
-        "{script}"
+        "{config['script'] }"
         --enable_bucket
         --min_bucket_reso=256
         --max_bucket_reso=2048
-        --pretrained_model_name_or_path="{base_model}"
+        --pretrained_model_name_or_path="{config['base_model']}"
         --train_data_dir="{args.path_lora_images}"
         --output_dir="{args.path_lora_model}"
         --logging_dir="{args.path_lora_logs}"
-        --resolution="{res}"
+        --resolution="{config['res']}"
         --network_alpha="1"
-        --network_module="{networks_module}"
+        --network_module="{config['networks_module']}"
         --max_train_epochs="30"
         --save_model_as=safetensors
         --network_args "conv_dim=1" "conv_alpha=1" "algo=lora"
-        --text_encoder_lr={text_encoder_lr}
-        --unet_lr={unet_lr}
-        --network_dim={network_dim}
+        --text_encoder_lr={config['text_encoder_lr']}
+        --unet_lr={config['unet_lr']}
+        --network_dim={config['network_dim']}
         --output_name="last"
-        --lr_scheduler_num_cycles="{lr_scheduler_num_cycles}"
-        --lr_scheduler={lr_scheduler}
-        --lr_warmup_steps="{lr_warmup_steps}"
+        --lr_scheduler_num_cycles="{config['lr_scheduler_num_cycles']}"
+        --lr_scheduler={config['lr_scheduler']}
+        --lr_warmup_steps="{config['lr_warmup_steps']}"
         --no_half_vae
-        --learning_rate={learning_rate}
-        --train_batch_size={train_batch_size}
-        --save_every_n_epochs={save_every_n_epochs}
-        --mixed_precision="{mixed_precision}"
-        --save_precision="{save_precision}"
-        --caption_extension="{caption_extension}"
+        --learning_rate={config['learning_rate']}
+        --train_batch_size={config['train_batch_size']}
+        --save_every_n_epochs={config['save_every_n_epochs']}
+        --mixed_precision="{config['mixed_precision']}"
+        --save_precision="{config['save_precision']}"
+        --caption_extension="{config['caption_extension']}"
         --cache_latents
-        --optimizer_type="{optimizer_type}"
-        --max_data_loader_n_workers="{max_data_loader_n_workers}"
-        --bucket_reso_steps={bucket_reso_steps}
+        --optimizer_type="{config['optimizer_type']}"
+        --max_data_loader_n_workers="{config['max_data_loader_n_workers']}"
+        --bucket_reso_steps={config['bucket_reso_steps']}
         --xformers
         --bucket_no_upscale
-        --noise_offset={noise_offset}
-        {optimizer_args}
+        --noise_offset={config['noise_offset']}
+        {config['optimizer_args']}
     """.replace(
         "\n", " "
     )
