@@ -282,6 +282,13 @@ if __name__ == "__main__":
         help="Keyword for the LoRA",
     )
 
+    # optional sd15 bool
+    parser.add_argument(
+        "--sd15",
+        action="store_true",
+        help="Use SD15 model (defaults to SDXL))",
+    )
+
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode")
 
     parser.add_argument(
