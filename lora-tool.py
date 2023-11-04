@@ -330,4 +330,8 @@ if __name__ == "__main__":
 
     # run lora building process
 
-    run_lora_process(args.path)
+    try:
+        run_lora_process(args.path)
+    finally:
+        # show args that were used
+        console.log(f"[yellow]Args used:[/yellow] {args}")
