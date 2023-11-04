@@ -302,7 +302,7 @@ if __name__ == "__main__":
         "-r",
         "--repeats",
         type=int,
-        default=100,
+        default=3,
         help="Number of repeats for the LoRA",
     )
 
